@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CareerNEWS — AI Career Advisor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0f15;
+      --panel:#0f1420;
+      --text:#e6f0ff;
+      --muted:#9fb3d1;
+      --blue:#22d3ee;
+      --magenta:#ff4d9d;
+      --purple:#8b5cf6;
+      --glow:0 0 24px rgba(34,211,238,.35), 0 0 40px rgba(139,92,246,.25);
+    }
+    html,body{background:var(--bg); color:var(--text);}
+    .font-display{font-family:"Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";}
+    .font-body{font-family:"Outfit", ui-sans-serif, system-ui;}
+    .glass{
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 6px 30px rgba(0,0,0,.35), var(--glow);
+      backdrop-filter: blur(8px);
+    }
+    .neon-border{
+      position: relative;
+      border:1px solid rgba(255,255,255,0.08);
+    }
+    .neon-border:before{
+      content:"";
+      position:absolute; inset:-1px;
+      border-radius: inherit;
+      padding:1px;
+      background: linear-gradient(135deg, rgba(34,211,238,.4), rgba(139,92,246,.4), rgba(255,77,157,.4));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      border-radius: inherit;
+    }
+    .grad-text{
+      background: linear-gradient(90deg, var(--blue), var(--purple), var(--magenta));
+      -webkit-background-clip:text; background-clip:text; color: transparent;
+    }
+    .btn-primary{
+      background: radial-gradient(120% 120% at 0% 0%, rgba(34,211,238,0.15), rgba(255,77,157,0.06) 60%), linear-gradient(90deg, #22d3ee, #8b5cf6, #ff4d9d);
+      color:#051018;
+      box-shadow: 0 8px 30px rgba(34,211,238,.25), 0 12px 60px rgba(139,92,246,.15);
+    }
+    .btn-primary:hover{ filter: brightness(1.08); transform: translateY(-2px); }
+    .ring-glow{
+      box-shadow: 0 0 0 6px rgba(34,211,238,.08), 0 0 0 12px rgba(139,92,246,.05);
+    }
+    .nav-active{
+      color:#fff;
+      text-shadow: 0 0 20px rgba(34,211,238,.6), 0 0 30px rgba(139,92,246,.5);
+    }
+    .icon-grad{
+      background: linear-gradient(180deg, #22d3ee, #8b5cf6 60%, #ff4d9d);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+    .chip{ transition: all .25s ease; }
+    .chip.active{ background: rgba(139,92,246,.15); border-color: rgba(139,92,246,.6); color:#fff; }
+    .page{ display:none; }
+    .page.active{ display:block; }
+
+    /* Simple pulse for hero glow */
+    @keyframes floaty { 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} 100%{transform:translateY(0)}}
+    .floaty{ animation: floaty 6s ease-in-out infinite; }
+
+    /* Ensure canvas crispness */
+    canvas{ image-rendering: pixelated; }
+  </style>
+</head>
+<body class="font-body">
+  <!-- Top Navigation -->
+  <header class="sticky top-0 z-50 bg-[rgba(6,10,16,0.7)] backdrop-blur-xl border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="h-16 flex items-center justify-between">
+        <a href="#home" class="flex items-center gap-3 group" data-route>
+          <div class="w-9 h-9 rounded-lg grid place-items-center neon-border">
+            <svg width="20" height="20" viewBox="0 0 24 24" class="icon-grad">
+              <path d="M3 11.5C8 9 10 5 12 3c2 2 4 6 9 8.5-5 2-7 6-9 8.5-2-2.5-4-6.5-9-8.5Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <div>
+            <p class="font-display font-semibold text-white tracking-wide leading-5">CareerNEWS</p>
+            <p class="text-[11px] -mt-0.5 text-[color:var(--muted)]">AI Career Advisor</p>
+          </div>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-6 text-[15px]">
+          <a href="#home" data-route class="text-[color:var(--muted)] hover:text-white transition">Home</a>
+          <a href="#features" data-route class="text-[color:var(--muted)] hover:text-white transition">Features</a>
+          <a href="#audience" data-route class="text-[color:var(--muted)] hover:text-white transition">Audience</a>
+          <a href="#about" data-route class="text-[color:var(--muted)] hover:text-white transition">About</a>
+          <a href="#contact" data-route class="text-[color:var(--muted)] hover:text-white transition">Contact</a>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <a href="#features" data-route class="hidden sm:inline-flex px-4 py-2 rounded-xl btn-primary text-sm font-semibold transition transform">Try CareerNEWS</a>
+          <!-- Mobile menu -->
+          <button id="menuBtn" class="md:hidden px-3 py-2 rounded-lg border border-white/10 text-[color:var(--muted)] hover:text-white hover:border-white/30">Menu</button>
+        </div>
+      </div>
+      <!-- Mobile dropdown -->
+      <div id="mobileMenu" class="hidden md:hidden pb-4">
+        <div class="grid gap-2">
+          <a href="#home" data-route class="block px-3 py-2 rounded-lg hover:bg-white/5 text-[color:var(--muted)]">Home</a>
+          <a href="#features" data-route class="block px-3 py-2 rounded-lg hover:bg-white/5 text-[color:var(--muted)]">Features</a>
+          <a href="#audience" data-route class="block px-3 py-2 rounded-lg hover:bg-white/5 text-[color:var(--muted)]">Audience</a>
+          <a href="#about" data-route class="block px-3 py-2 rounded-lg hover:bg-white/5 text-[color:var(--muted)]">About</a>
+          <a href="#contact" data-route class="block px-3 py-2 rounded-lg hover:bg-white/5 text-[color:var(--muted)]">Contact</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Page -->
+  <main id="home" class="page active">
+    <section class="relative overflow-hidden">
+      <!-- Background glow grid -->
+      <div class="absolute inset-0 -z-10">
+        <div class="absolute inset-0 opacity-40"
+             style="background: radial-gradient(800px 400px at 20% 20%, rgba(34,211,238,.12), transparent 60%),
+                            radial-gradient(600px 300px at 80% 10%, rgba(139,92,246,.10), transparent 60%),
+                            radial-gradient(900px 500px at 50% 80%, rgba(255,77,157,.08), transparent 60%);">
+        </div>
+        <svg class="absolute inset-0 w-full h-full opacity-[0.07]" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M40 0H0V40" fill="none" stroke="white" stroke-opacity="0.4" stroke-width="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)"/>
+        </svg>
+      </div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+        <div class="grid lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+              Design your next move with
+              <span class="grad-text">CareerNEWS</span>
+            </h1>
+            <p class="mt-5 text-lg text-[color:var(--muted)] max-w-xl">
+              An intelligent AI guide that maps personalized career paths, tracks market trends, and prepares you for standout applications and interviews.
+            </p>
+            <div class="mt-7 flex flex-wrap items-center gap-3">
+              <a href="#features" data-route class="px-6 py-3 rounded-2xl btn-primary font-semibold transition transform">Explore Features</a>
+              <a href="#audience" data-route class="px-6 py-3 rounded-2xl border border-white/15 hover:border-white/30 text-white/90 transition">Who it helps</a>
+            </div>
+
+            <div class="mt-10 flex items-center gap-3 text-sm text-[color:var(--muted)]">
+              <div class="w-2.5 h-2.5 rounded-full bg-[var(--blue)] ring-4 ring-cyan-400/20"></div>
+              Smart. Fast. Actionable insights.
+            </div>
+          </div>
+
+          <!-- Dynamic Visual: Career Path Canvas -->
+          <div class="relative">
+            <div class="glass neon-border rounded-2xl p-4 sm:p-6">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                  <p class="text-sm text-[color:var(--muted)]">Personalized Path Preview</p>
+                </div>
+                <div class="flex gap-2">
+                  <button class="chip px-3 py-1.5 rounded-full border border-white/10 text-xs text-[color:var(--muted)]" data-persona="student">Student</button>
+                  <button class="chip px-3 py-1.5 rounded-full border border-white/10 text-xs text-[color:var(--muted)]" data-persona="jobseeker">Job Seeker</button>
+                  <button class="chip px-3 py-1.5 rounded-full border border-white/10 text-xs text-[color:var(--muted)]" data-persona="founder">Entrepreneur</button>
+                </div>
+              </div>
+              <canvas id="pathCanvas" class="w-full rounded-xl bg-[#0a0f17] ring-glow" height="340"></canvas>
+              <p class="mt-3 text-xs text-[color:var(--muted)]">Tip: switch personas to see different path flows.</p>
+
+              <!-- AI Assistant inside preview box -->
+              <div class="mt-5 rounded-2xl bg-white/[0.03] border border-white/10">
+                <div class="flex items-center justify-between p-4">
+                  <div>
+                    <p class="font-display font-semibold">AI Career Guide</p>
+                    <p class="text-[11px] text-[color:var(--muted)]">Ask doubts, clarifications, career advice, or startup/marketing tips. Demo only.</p>
+                  </div>
+                  <div class="hidden sm:flex items-center gap-2 text-xs text-[color:var(--muted)]">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400"></span> Online
+                  </div>
+                </div>
+                <div id="aiChatMessages" class="px-4 pb-3 max-h-48 overflow-y-auto space-y-3">
+                  <div class="flex gap-3">
+                    <div class="w-6 h-6 rounded-lg grid place-items-center bg-white/5 border border-white/10 shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 24 24" class="icon-grad"><path d="M3 11.5C8 9 10 5 12 3c2 2 4 6 9 8.5-5 2-7 6-9 8.5-2-2.5-4-6.5-9-8.5Z" fill="currentColor"/></svg>
+                    </div>
+                    <div class="text-sm">
+                      <p class="text-white/90">Hi! I’m your AI guide. Pick a persona above and ask me anything about roles, skills, interviews, or business marketing.</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="px-4 pb-4">
+                  <div class="flex flex-wrap gap-2 mb-3">
+                    <button class="ai-suggest px-3 py-1.5 rounded-full border border-white/10 text-xs text-[color:var(--muted)]">Best next role for me?</button>
+                    <button class="ai-suggest px-3 py-1.5 rounded-full border border-white/10 text-xs text-[color:var(--muted)]">Which skills to learn?</button>
+                    <button class="ai-suggest px-3 py-1.5 rounded-full border border-white/10 text-xs text-[color:var(--muted)]">How to tailor my resume?</button>
+                    <button class="ai-suggest px-3 py-1.5 rounded-full border border-white/10 text-xs text-[color:var(--muted)]">Startup GTM ideas</button>
+                  </div>
+                  <form id="aiChatForm" class="flex items-center gap-2">
+                    <input id="aiChatInput" type="text" placeholder="Ask for advice…" class="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:border-white/30" required />
+                    <button type="submit" class="px-4 py-2.5 rounded-xl btn-primary font-semibold text-sm">Ask</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <!-- Floating stat cards -->
+            <div class="absolute -left-3 -top-5 floaty">
+              <div class="px-4 py-3 rounded-xl glass neon-border">
+                <p class="text-[11px] text-[color:var(--muted)]">Time to next role</p>
+                <p class="font-display font-semibold">4–6 months</p>
+              </div>
+            </div>
+            <div class="absolute -right-4 -bottom-5 floaty" style="animation-delay:.8s">
+              <div class="px-4 py-3 rounded-xl glass neon-border">
+                <p class="text-[11px] text-[color:var(--muted)]">Match Confidence</p>
+                <p class="font-display font-semibold grad-text">92%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Features Page -->
+  <section id="features" class="page">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+      <div class="text-center max-w-3xl mx-auto">
+        <h2 class="font-display text-3xl sm:text-4xl font-bold">What CareerNEWS does best</h2>
+        <p class="mt-3 text-[color:var(--muted)]">Smart tools that turn your goals into clear next steps.</p>
+      </div>
+
+      <div class="mt-10 grid md:grid-cols-3 gap-6">
+        <!-- Card 1 -->
+        <div class="glass neon-border rounded-2xl p-6">
+          <div class="w-12 h-12 rounded-xl grid place-items-center mb-4 bg-white/5 border border-white/10">
+            <svg width="24" height="24" viewBox="0 0 24 24" class="icon-grad">
+              <path d="M12 3l7 4v10l-7 4-7-4V7l7-4Z" fill="currentColor" opacity=".18"/>
+              <path d="M7 9l5 3 5-3m-5 3v6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          <h3 class="font-display font-semibold text-lg">Personalized Career Mapping</h3>
+          <p class="mt-2 text-[color:var(--muted)]">See role options, required skills, and realistic timelines tailored to you.</p>
+          <button data-demo="map" class="mt-4 px-4 py-2 rounded-xl border border-white/10 hover:border-white/30 text-sm">Preview</button>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="glass neon-border rounded-2xl p-6">
+          <div class="w-12 h-12 rounded-xl grid place-items-center mb-4 bg-white/5 border border-white/10">
+            <svg width="24" height="24" viewBox="0 0 24 24" class="icon-grad">
+              <path d="M4 17c4-2 6-6 8-10 2 4 4 8 8 10-4 2-6 2-8 2s-4 0-8-2Z" fill="currentColor" opacity=".2"/>
+              <path d="M4 17c4-2 6-6 8-10 2 4 4 8 8 10" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <circle cx="12" cy="7" r="1" fill="currentColor"/>
+            </svg>
+          </div>
+          <h3 class="font-display font-semibold text-lg">Market Trend Analysis</h3>
+          <p class="mt-2 text-[color:var(--muted)]">Spot rising roles, hot skills, and salary ranges with live insights.</p>
+          <button data-demo="trend" class="mt-4 px-4 py-2 rounded-xl border border-white/10 hover:border-white/30 text-sm">Preview</button>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="glass neon-border rounded-2xl p-6">
+          <div class="w-12 h-12 rounded-xl grid place-items-center mb-4 bg-white/5 border border-white/10">
+            <svg width="24" height="24" viewBox="0 0 24 24" class="icon-grad">
+              <path d="M6 5h12v3H6zM6 10h12v9H6z" fill="currentColor" opacity=".18"/>
+              <path d="M8 12h8M8 15h6M8 18h4" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <h3 class="font-display font-semibold text-lg">Resume & Interview Prep</h3>
+          <p class="mt-2 text-[color:var(--muted)]">Upgrade your resume and practice interviews with targeted feedback.</p>
+          <button data-demo="prep" class="mt-4 px-4 py-2 rounded-xl border border-white/10 hover:border-white/30 text-sm">Preview</button>
+        </div>
+      </div>
+
+      <!-- Demo area -->
+      <div id="featureDemo" class="mt-8 glass neon-border rounded-2xl p-6 hidden">
+        <div class="flex items-center justify-between">
+          <h4 class="font-display font-semibold">Interactive Preview</h4>
+          <button id="closeDemo" class="text-[color:var(--muted)] hover:text-white text-sm">Close</button>
+        </div>
+        <div id="demoContent" class="mt-4 text-[color:var(--muted)] text-sm"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Target Audience Page -->
+  <section id="audience" class="page">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+      <div class="text-center max-w-3xl mx-auto">
+        <h2 class="font-display text-3xl sm:text-4xl font-bold">Built for every path</h2>
+        <p class="mt-3 text-[color:var(--muted)]">CareerNEWS adapts to your stage and ambition.</p>
+      </div>
+
+      <div class="mt-12 grid lg:grid-cols-3 gap-6">
+        <!-- Students -->
+        <div class="rounded-2xl glass neon-border p-6 flex flex-col">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/5 grid place-items-center border border-white/10">
+              <svg width="22" height="22" viewBox="0 0 24 24" class="icon-grad">
+                <path d="M3 8l9-5 9 5-9 5-9-5Zm2 8v-5l7 4 7-4v5c0 3-5 4-7 4s-7-1-7-4Z" fill="currentColor" />
+              </svg>
+            </div>
+            <h3 class="font-display font-semibold text-lg">Students</h3>
+          </div>
+          <p class="mt-3 text-[color:var(--muted)]">Explore roles, build skills semester-by-semester, and land internships that count.</p>
+          <ul class="mt-4 space-y-2 text-sm text-[color:var(--muted)]">
+            <li>• Semester roadmaps</li>
+            <li>• Skill gap guidance</li>
+            <li>• Internship targeting</li>
+          </ul>
+          <button class="mt-6 px-4 py-2 rounded-xl border border-white/10 hover:border-white/30 text-sm self-start" data-cta="students">Get a student plan</button>
+        </div>
+
+        <!-- Job Seekers -->
+        <div class="rounded-2xl glass neon-border p-6 flex flex-col">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/5 grid place-items-center border border-white/10">
+              <svg width="22" height="22" viewBox="0 0 24 24" class="icon-grad">
+                <path d="M6 7h12v10H6z" fill="currentColor" opacity=".2"/>
+                <path d="M8 7V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M6 9h12M9 13h6" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <h3 class="font-display font-semibold text-lg">Job Seekers</h3>
+          </div>
+          <p class="mt-3 text-[color:var(--muted)]">Target roles, tailor resumes instantly, and practice interviews with live feedback.</p>
+          <ul class="mt-4 space-y-2 text-sm text-[color:var(--muted)]">
+            <li>• Smart role matching</li>
+            <li>• Resume rewrites</li>
+            <li>• Mock interviews</li>
+          </ul>
+          <button class="mt-6 px-4 py-2 rounded-xl border border-white/10 hover:border-white/30 text-sm self-start" data-cta="jobseekers">Boost my search</button>
+        </div>
+
+        <!-- Entrepreneurs -->
+        <div class="rounded-2xl glass neon-border p-6 flex flex-col">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/5 grid place-items-center border border-white/10">
+              <svg width="22" height="22" viewBox="0 0 24 24" class="icon-grad">
+                <path d="M4 13c4-1 5-6 8-8 2 2 3 7 8 8-4 1-5 3-8 6-3-3-4-5-8-6Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <h3 class="font-display font-semibold text-lg">Entrepreneurs</h3>
+          </div>
+          <p class="mt-3 text-[color:var(--muted)]">Validate ideas, map skills to roles, and plan hiring for the first 12 months.</p>
+          <ul class="mt-4 space-y-2 text-sm text-[color:var(--muted)]">
+            <li>• Lean skill stack</li>
+            <li>• Role design & hiring plan</li>
+            <li>• Go-to-market steps</li>
+          </ul>
+          <button class="mt-6 px-4 py-2 rounded-xl border border-white/10 hover:border-white/30 text-sm self-start" data-cta="founders">Map my venture</button>
+        </div>
+      </div>
+
+      <!-- Result toast -->
+      <div id="audienceToast" class="hidden mt-8 px-4 py-3 rounded-xl glass neon-border text-sm text-[color:var(--muted)]"></div>
+    </div>
+  </section>
+
+  <!-- About Page -->
+  <section id="about" class="page">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+      <div class="rounded-3xl glass neon-border p-8 lg:p-12">
+        <h2 class="font-display text-3xl sm:text-4xl font-bold">Our mission</h2>
+        <p class="mt-4 text-[color:var(--muted)] text-lg">
+          CareerNEWS exists to make confident career moves simple. We combine data, trends, and your strengths to create paths that feel personal—then coach you through resumes, interviews, and real steps forward.
+        </p>
+        <div class="mt-8 grid sm:grid-cols-3 gap-5">
+          <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+            <p class="text-sm text-[color:var(--muted)]">Values</p>
+            <p class="mt-1 font-display font-semibold">Clarity, Momentum, Care</p>
+          </div>
+          <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+            <p class="text-sm text-[color:var(--muted)]">Approach</p>
+            <p class="mt-1 font-display font-semibold">Insight → Plan → Action</p>
+          </div>
+          <div class="p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+            <p class="text-sm text-[color:var(--muted)]">Promise</p>
+            <p class="mt-1 font-display font-semibold">Next steps, always clear</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Page -->
+  <section id="contact" class="page">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+      <div class="grid lg:grid-cols-2 gap-8">
+        <div class="rounded-3xl glass neon-border p-8">
+          <h2 class="font-display text-3xl font-bold">Get in touch</h2>
+          <p class="mt-2 text-[color:var(--muted)]">Have a question or want early access? We’d love to hear from you.</p>
+
+          <form id="contactForm" class="mt-6 grid gap-4">
+            <div>
+              <label class="block text-sm mb-1 text-[color:var(--muted)]">Name</label>
+              <input required type="text" name="name" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:border-white/30" placeholder="Your name" />
+            </div>
+            <div>
+              <label class="block text-sm mb-1 text-[color:var(--muted)]">Email</label>
+              <input required type="email" name="email" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:border-white/30" placeholder="you@example.com" />
+            </div>
+            <div>
+              <label class="block text-sm mb-1 text-[color:var(--muted)]">Message</label>
+              <textarea required name="message" rows="4" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:border-white/30" placeholder="Tell us a bit about your goals..."></textarea>
+            </div>
+            <button type="submit" class="mt-2 px-5 py-3 rounded-2xl btn-primary font-semibold w-max">Send message</button>
+            <p id="contactStatus" class="text-sm text-[color:var(--muted)] hidden"></p>
+          </form>
+        </div>
+
+        <div class="rounded-3xl glass neon-border p-8">
+          <h3 class="font-display font-semibold text-xl">Connect</h3>
+          <p class="mt-2 text-[color:var(--muted)]">Follow for updates, tips, and new features.</p>
+
+          <div class="mt-5 grid gap-3">
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-white/30">
+              <span>Twitter / X</span>
+              <span class="text-[color:var(--muted)]">Open</span>
+            </a>
+            <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-white/30">
+              <span>LinkedIn</span>
+              <span class="text-[color:var(--muted)]">Open</span>
+            </a>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10 hover:border-white/30">
+              <span>GitHub</span>
+              <span class="text-[color:var(--muted)]">Open</span>
+            </a>
+          </div>
+
+          <div class="mt-8 p-5 rounded-2xl bg-white/[0.03] border border-white/10">
+            <p class="text-sm text-[color:var(--muted)]">Availability</p>
+            <p class="mt-1 font-display font-semibold">Mon–Fri, 9am–6pm</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-sm text-[color:var(--muted)]">© <span id="year"></span> CareerNEWS. All rights reserved.</p>
+      <div class="flex items-center gap-3">
+        <a href="#about" data-route class="text-sm text-[color:var(--muted)] hover:text-white">About</a>
+        <span class="text-white/10">•</span>
+        <a href="#contact" data-route class="text-sm text-[color:var(--muted)] hover:text-white">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Basic hash router for multi-section site
+    const pages = Array.from(document.querySelectorAll('.page'));
+    const links = Array.from(document.querySelectorAll('[data-route]'));
+    const mobileMenu = document.getElementById('mobileMenu');
+    const menuBtn = document.getElementById('menuBtn');
+
+    function setActiveLink(hash){
+      links.forEach(a=>{
+        if(a.getAttribute('href') === hash) a.classList.add('nav-active');
+        else a.classList.remove('nav-active');
+      });
+    }
+
+    function showPage(hash){
+      const id = (hash || '#home').replace('#','');
+      pages.forEach(p => p.classList.toggle('active', p.id === id));
+      setActiveLink('#'+id);
+      if(mobileMenu) mobileMenu.classList.add('hidden');
+    }
+
+    // Initialize route
+    window.addEventListener('hashchange', () => showPage(location.hash));
+    showPage(location.hash || '#home');
+
+    // Smooth-ish scroll within same page sections (just route switch)
+    links.forEach(a=>{
+      a.addEventListener('click', (e)=>{
+        const href = a.getAttribute('href') || '#home';
+        if(href.startsWith('#')){
+          e.preventDefault();
+          location.hash = href; // hash-based navigation is allowed within iframe
+        }
+      });
+    });
+
+    // Mobile menu toggle
+    if(menuBtn){
+      menuBtn.addEventListener('click', ()=>{
+        mobileMenu.classList.toggle('hidden');
+      });
+    }
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Hero: Persona-based animated career paths on canvas
+    const canvas = document.getElementById('pathCanvas');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas(){
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(340 * dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const personas = {
+      student: { colorStops: ['#22d3ee','#8b5cf6'], nodes: 18, speed: 0.6 },
+      jobseeker: { colorStops: ['#8b5cf6','#ff4d9d'], nodes: 22, speed: 0.8 },
+      founder: { colorStops: ['#22d3ee','#ff4d9d'], nodes: 20, speed: 0.7 },
+    };
+    let currentPersona = 'student';
+
+    const chips = document.querySelectorAll('.chip');
+    chips.forEach(ch=>{
+      if(ch.dataset.persona === currentPersona) ch.classList.add('active');
+      ch.addEventListener('click', ()=>{
+        chips.forEach(c=>c.classList.remove('active'));
+        ch.classList.add('active');
+        currentPersona = ch.dataset.persona;
+        resetPaths();
+      });
+    });
+
+    let particles = [];
+    function resetPaths(){
+      particles = [];
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      const conf = personas[currentPersona];
+      const colors = conf.colorStops;
+      for(let i=0;i<conf.nodes;i++){
+        particles.push({
+          x: Math.random()*width*0.9 + width*0.05,
+          y: Math.random()*height*0.8 + height*0.1,
+          vx: (Math.random()-.5)*conf.speed,
+          vy: (Math.random()-.5)*conf.speed,
+          size: Math.random()*1.8 + 0.8,
+          hue: i%2===0 ? colors[0] : colors[1]
+        });
+      }
+    }
+    resetPaths();
+
+    function lineGradient(x1,y1,x2,y2,stops){
+      const g = ctx.createLinearGradient(x1,y1,x2,y2);
+      g.addColorStop(0, stops[0]);
+      g.addColorStop(1, stops[1]);
+      return g;
+    }
+
+    function animate(){
+      ctx.clearRect(0,0,canvas.width, canvas.height);
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      const conf = personas[currentPersona];
+
+      // Draw connections
+      for(let i=0;i<particles.length;i++){
+        for(let j=i+1;j<particles.length;j++){
+          const a = particles[i], b = particles[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const dist = Math.hypot(dx,dy);
+          if(dist < 120){
+            ctx.beginPath();
+            ctx.strokeStyle = lineGradient(a.x,a.y,b.x,b.y, conf.colorStops);
+            ctx.globalAlpha = (120 - dist)/240;
+            ctx.lineWidth = 1.2;
+            ctx.moveTo(a.x,a.y);
+            // subtle curve
+            const cx = (a.x+b.x)/2 + (dy*0.2);
+            const cy = (a.y+b.y)/2 - (dx*0.2);
+            ctx.quadraticCurveTo(cx, cy, b.x, b.y);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        }
+      }
+
+      // Move and draw nodes
+      particles.forEach(p=>{
+        p.x += p.vx;
+        p.y += p.vy;
+        // bounce within canvas
+        if(p.x < 10 || p.x > w-10) p.vx *= -1;
+        if(p.y < 10 || p.y > h-10) p.vy *= -1;
+
+        // node
+        ctx.beginPath();
+        ctx.fillStyle = p.hue;
+        ctx.globalAlpha = 0.85;
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // glow
+        ctx.beginPath();
+        ctx.fillStyle = p.hue + '33';
+        ctx.arc(p.x, p.y, p.size*3, 0, Math.PI*2);
+        ctx.fill();
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // AI Career Guide (local demo)
+    const aiForm = document.getElementById('aiChatForm');
+    const aiInput = document.getElementById('aiChatInput');
+    const aiMessages = document.getElementById('aiChatMessages');
+
+    function addMessage(role, text){
+      const wrap = document.createElement('div');
+      wrap.className = 'flex gap-3';
+      const isAI = role === 'ai';
+      wrap.innerHTML = `
+        <div class="w-6 h-6 rounded-lg grid place-items-center ${isAI ? 'bg-white/5 border border-white/10' : 'bg-gradient-to-br from-cyan-400/40 to-fuchsia-400/40 border border-white/10'} shrink-0">
+          ${isAI ? '<svg width="14" height="14" viewBox="0 0 24 24" class="icon-grad"><path d="M3 11.5C8 9 10 5 12 3c2 2 4 6 9 8.5-5 2-7 6-9 8.5-2-2.5-4-6.5-9-8.5Z" fill="currentColor"/></svg>' : '<span class="text-xs text-white/90">You</span>'}
+        </div>
+        <div class="text-sm ${isAI ? '' : 'text-white/90'}"></div>
+      `;
+      // Use textContent to avoid HTML injection
+      wrap.lastElementChild.textContent = text;
+      aiMessages.appendChild(wrap);
+      aiMessages.scrollTop = aiMessages.scrollHeight;
+    }
+
+    function smartAdvice(question){
+      const q = question.toLowerCase();
+      const persona = currentPersona; // 'student' | 'jobseeker' | 'founder'
+
+      // Quick keyword buckets
+      const wantsRole = /(role|job|position|next role|switch|transition)/.test(q);
+      const wantsSkills = /(skill|learn|course|cert|upskill)/.test(q);
+      const wantsResume = /(resume|cv|bullet|ats)/.test(q);
+      const wantsInterview = /(interview|prepare|question|star)/.test(q);
+      const wantsMarket = /(market|trend|salary|demand|hot|growth)/.test(q);
+      const wantsStartup = /(startup|business|marketing|gtm|customers|mvp|idea)/.test(q);
+
+      const preface = {
+        student: 'For a student, here\'s a tight next step:',
+        jobseeker: 'For a job seeker, try this:',
+        founder: 'For an entrepreneur, consider this:',
+      }[persona];
+
+      if(wantsStartup){
+        return `${preface} 1) Define a narrow audience and problem. 2) Build a simple MVP in 2 weeks. 3) Launch with 3 channels: communities, cold outreach, and a short landing page with 1 clear CTA. Measure replies, not likes. After 10–20 talks, adjust the offer and pricing.`;
+      }
+      if(wantsMarket){
+        return `${preface} Track 3 signals weekly: openings on top boards, skill frequency in descriptions, and salary ranges. Rising tags now: AI assistants, automation, data tooling. Set alerts, save 10 roles, and note recurring keywords—those are your next skills.`;
+      }
+      if(wantsInterview){
+        return `${preface} Practice 5 STAR stories (Situation, Task, Action, Result). Keep answers under 90 seconds. Close with a result metric like time saved, revenue, or adoption. End each answer with one learning—shows growth.`;
+      }
+      if(wantsResume){
+        return `${preface} Use a one-line impact bullet: action verb + what + how + result. Example: "Automated report distribution using Python, cutting weekly prep by 6 hours (−75%)." Mirror 3–5 keywords from the role description to pass filters.`;
+      }
+      if(wantsSkills){
+        if(persona==='student') return `${preface} Focus on a stack you can demo in 4 weeks. Example: SQL + spreadsheets + a dashboard. Build one project per course. Publish a short write-up and link it at the top of your resume.`;
+        if(persona==='jobseeker') return `${preface} Pick 2 core skills from target roles and 1 differentiator (e.g., data viz, automation, or AI tools). Schedule 30–30–30: 30 mins learning, 30 mins building, 30 mins sharing—daily for 10 days.`;
+        return `${preface} Choose the lean stack to validate (no-code form + spreadsheet + automation). Optimize for speed to first customer conversation, not features.`;
+      }
+      if(wantsRole){
+        if(persona==='student') return `${preface} Aim for an internship that teaches your target toolset. If you like data, try "Data Analyst → Analytics Engineer" path. Build 2 mini projects and add a quantified line for each.`;
+        if(persona==='jobseeker') return `${preface} Shortlist 5 roles. For each, write 3 bullets that mirror their language and one mini project link. Apply in 2 waves of 10 with small tweaks—momentum beats perfection.`;
+        return `${preface} Define the role you do today and the one you need next (e.g., solo builder → customer development). Write the weekly outcomes for that role and track them publicly.`;
+      }
+      // Default helpful path
+      return `${preface} Tell me your current role or study focus and one target role. I\'ll map skills, a 4-week plan, and a sample resume bullet to get you moving.`;
+    }
+
+    if(aiForm && aiInput && aiMessages){
+      document.querySelectorAll('.ai-suggest').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          aiInput.value = btn.textContent.trim();
+          aiInput.focus();
+        });
+      });
+
+      aiForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const text = aiInput.value.trim();
+        if(!text) return;
+        addMessage('user', text);
+        aiInput.value = '';
+
+        // Simulate thinking
+        const thinkingId = 'typing-'+Date.now();
+        const thinking = document.createElement('div');
+        thinking.className = 'flex gap-3';
+        thinking.id = thinkingId;
+        thinking.innerHTML = `
+          <div class="w-6 h-6 rounded-lg grid place-items-center bg-white/5 border border-white/10 shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" class="icon-grad"><path d="M3 11.5C8 9 10 5 12 3c2 2 4 6 9 8.5-5 2-7 6-9 8.5-2-2.5-4-6.5-9-8.5Z" fill="currentColor"/></svg>
+          </div>
+          <div class="text-sm text-[color:var(--muted)]">Typing…</div>
+        `;
+        aiMessages.appendChild(thinking);
+        aiMessages.scrollTop = aiMessages.scrollHeight;
+
+        setTimeout(()=>{
+          thinking.remove();
+          const reply = smartAdvice(text);
+          addMessage('ai', reply);
+        }, 600 + Math.random()*600);
+      });
+    }
+
+    // Features demo interactions
+    const demoWrap = document.getElementById('featureDemo');
+    const demoContent = document.getElementById('demoContent');
+    const closeDemo = document.getElementById('closeDemo');
+
+    function openDemo(type){
+      demoWrap.classList.remove('hidden');
+      if(type === 'map'){
+        demoContent.innerHTML = `
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <p class="text-xs text-[color:var(--muted)]">You →</p>
+              <p class="font-display font-semibold">Data Analyst</p>
+              <p class="text-xs mt-1 text-[color:var(--muted)]">Current</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <p class="text-xs text-[color:var(--muted)]">Up next</p>
+              <p class="font-display font-semibold">Analytics Engineer</p>
+              <p class="text-xs mt-1 text-[color:var(--muted)]">3–6 months</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <p class="text-xs text-[color:var(--muted)]">Stretch</p>
+              <p class="font-display font-semibold">Data Scientist</p>
+              <p class="text-xs mt-1 text-[color:var(--muted)]">9–12 months</p>
+            </div>
+          </div>
+          <div class="mt-4 text-sm">Recommended skills: SQL, dbt, Python, ML basics</div>
+        `;
+      } else if(type === 'trend'){
+        // simple trend ticker
+        demoContent.innerHTML = `
+          <div class="grid sm:grid-cols-3 gap-3">
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <p class="text-xs text-[color:var(--muted)]">Rising Role</p>
+              <p class="font-display font-semibold">Prompt Engineer</p>
+              <p class="text-xs mt-1 grad-text">+42% openings</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <p class="text-xs text-[color:var(--muted)]">Hot Skill</p>
+              <p class="font-display font-semibold">RAG Systems</p>
+              <p class="text-xs mt-1 grad-text">+31% demand</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <p class="text-xs text-[color:var(--muted)]">Pay Range</p>
+              <p class="font-display font-semibold">$120k–$170k</p>
+              <p class="text-xs mt-1 text-[color:var(--muted)]">US market</p>
+            </div>
+          </div>
+        `;
+      } else {
+        demoContent.innerHTML = `
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <p class="text-xs text-[color:var(--muted)]">Resume Tip</p>
+              <p class="font-display font-semibold">Quantify results</p>
+              <p class="text-xs mt-1 text-[color:var(--muted)]">“Improved conversion by 18%” beats “Improved conversion.”</p>
+            </div>
+            <div class="p-4 rounded-xl bg-white/5 border border-white/10">
+              <p class="text-xs text-[color:var(--muted)]">Interview Practice</p>
+              <p class="font-display font-semibold">STAR answers</p>
+              <p class="text-xs mt-1 text-[color:var(--muted)]">Situation, Task, Action, Result—keep it tight.</p>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    document.querySelectorAll('[data-demo]').forEach(btn=>{
+      btn.addEventListener('click', ()=> openDemo(btn.dataset.demo));
+    });
+    closeDemo.addEventListener('click', ()=> demoWrap.classList.add('hidden'));
+
+    // Audience CTAs - quick personalized toast
+    const toast = document.getElementById('audienceToast');
+    document.querySelectorAll('[data-cta]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const type = btn.dataset.cta;
+        let msg = '';
+        if(type==='students') msg = 'Student roadmap created: skills by semester, plus 3 internship targets.';
+        if(type==='jobseekers') msg = 'Job seeker plan ready: 5 matched roles and tailored resume bullets.';
+        if(type==='founders') msg = 'Founder path mapped: 12-month hiring plan and lean stack.';
+        toast.textContent = msg;
+        toast.classList.remove('hidden');
+        // scroll into view within page
+        toast.scrollIntoView({behavior:'smooth', block:'nearest'});
+        setTimeout(()=> toast.classList.add('hidden'), 4200);
+      });
+    });
+
+    // Contact form
+    const contactForm = document.getElementById('contactForm');
+    const contactStatus = document.getElementById('contactStatus');
+    contactForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(contactForm).entries());
+      // Simulate success locally
+      contactStatus.textContent = `Thanks ${data.name}! We’ll reply at ${data.email}.`;
+      contactStatus.classList.remove('hidden');
+      contactForm.reset();
+    });
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'982a229d05eb4850',t:'MTc1ODQ2MzcxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
