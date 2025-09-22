@@ -65,11 +65,9 @@ Key capabilities:
 2. CareerNEWS maps skills and detects gaps  
 3. Recommends career path + learning journey  
 4. Provides resume feedback, interview prep, and business insights  
-5. Tracks progress with dashboards  
+5. Tracks progress with dashboards
 
-*(Add diagrams or flowcharts here if available)*  
-
----
+----
 
 ## 🧑‍💻 Technology Stack  
 
