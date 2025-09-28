@@ -94,11 +94,6 @@ Key capabilities:
 
 ---
 
-## 💰 Estimated Implementation Cost  
-*(Add if required for hackathon submission)*  
-
----
-
 ## 🎯 Innovation & Uniqueness  
 - Combines **career guidance, job readiness, and business marketing**  
 - AI-driven **personalized recommendations**  
